@@ -1,7 +1,8 @@
 # SQLite3 Benchmark
 
 A SQLcipher benchmark tool.
-Based of the code comes from [sqlite-bench](https://github.com/ukontainer/sqlite-bench).
+
+Based on [sqlite-bench](https://github.com/ukontainer/sqlite-bench).
 
 ## Before Building
 
