@@ -1,12 +1,19 @@
-# SQLite3 Benchmark [![CircleCI](https://circleci.com/gh/ukontainer/sqlite-bench.svg?style=shield)](https://circleci.com/gh/ukontainer/sqlite-bench)
+# SQLite3 Benchmark
 
-A SQLite3 benchmark tool.
-Most of the code comes from [LevelDB](https://github.com/google/leveldb).
-This is C version of [benchmarks/db_bench_sqlite3.cc](https://github.com/google/leveldb/blob/main/benchmarks/db_bench_sqlite3.cc).
+A SQLcipher benchmark tool.
+Based of the code comes from [sqlite-bench](https://github.com/ukontainer/sqlite-bench).
+
+## Before Building
+
+You need to compile [SQLCipher](https://github.com/sqlcipher/sqlcipher) in your machine.
+
+Use the following command to confirm sqlcipher.
+
+```sh
+$ sqlcipher --version
+```
 
 ## Building
-
-SQLite3 is included in the repository.
 
 ```sh
 $ make
