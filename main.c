@@ -14,6 +14,7 @@
 //   fillrandsync  -- write N/100 values in random key order in sync mode
 //   fillrandbatch -- batch write N values in sequential key order in async mode
 //   overwrite     -- overwrite N values in random key order in async mode
+//   overwritesync -- overwrite N values in random key order in sync mode
 //   fillrand100K  -- write N/1000 100K values in random order in async mode
 //   fillseq100K   -- write N/1000 100K values in sequential order in async mode
 //   readseq       -- read N times sequentially
@@ -72,6 +73,7 @@ void init() {
   //   fillrandsync  -- write N/100 values in random key order in sync mode
   //   fillrandbatch -- batch write N values in sequential key order in async mode
   //   overwrite     -- overwrite N values in random key order in async mode
+  //   overwritesync -- overwrite N values in random key order in sync mode
   //   fillrand100K  -- write N/1000 100K values in random order in async mode
   //   fillseq100K   -- write N/1000 100K values in sequential order in async mode
   //   readseq       -- read N times sequentially
@@ -80,22 +82,22 @@ void init() {
   FLAGS_benchmarks =
     "fillseq,"
     "fillseqsync,"
-    "fillseqbatch,"
     "fillrandom,"
     "fillrandsync,"
-    "fillrandbatch,"
     "overwrite,"
-    "overwritebatch,"
+    "overwritesync,"
     "readrandom,"
     "readseq,"
     "fillrand100K,"
     "fillseq100K,"
     "readseq,"
     "readrand100K,"
+	  "delete,"
+	  "deletesync,"
     ;
   FLAGS_num = 1000000;
   FLAGS_reads = -1;
-  FLAGS_value_size = 100;
+  FLAGS_value_size = 128;
   FLAGS_compression_ratio = 0.5;
   FLAGS_page_size = 1024;
   FLAGS_num_pages = 4096;
@@ -134,11 +136,14 @@ void print_usage(const char* argv0) {
   fprintf(stderr, "  fillrandsync\twrite N values in random key order in sync mode\n");
   fprintf(stderr, "  fillrandbatch\tbatch write N values in random key order in async mode\n");
   fprintf(stderr, "  overwrite\toverwrite N values in random key order in async mode\n");
+  fprintf(stderr, "  overwritesync\toverwrite N values in random key order in sync mode\n");
   fprintf(stderr, "  fillrand100K\twrite N/1000 100K values in random order in async mode\n");
   fprintf(stderr, "  fillseq100K\twirte N/1000 100K values in sequential order in async mode\n");
   fprintf(stderr, "  readseq\tread N times sequentially\n");
   fprintf(stderr, "  readrandom\tread N times in random order\n");
   fprintf(stderr, "  readrand100K\tread N/1000 100K values in random order in async mode\n");
+  fprintf(stderr, "  delete\tdelete N row in random order in async mode\n");
+  fprintf(stderr, "  deletesync\tdelete N row in random order in sync mode\n");
 
 }
 

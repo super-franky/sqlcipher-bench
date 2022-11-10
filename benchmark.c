@@ -265,6 +265,10 @@ void benchmark_run() {
     } else if (!strcmp(name, "overwrite")) {
       benchmark_write(write_sync, RANDOM, num_, FLAGS_value_size, 1);
       wal_checkpoint(db_);
+    } else if (!strcmp(name, "overwritesync")) {
+	  write_sync = true;
+      benchmark_write(write_sync, RANDOM, num_, FLAGS_value_size, 1);
+      wal_checkpoint(db_);
     } else if (!strcmp(name, "overwritebatch")) {
       benchmark_write(write_sync, RANDOM, num_, FLAGS_value_size, 1000);
       wal_checkpoint(db_);
@@ -291,6 +295,13 @@ void benchmark_run() {
       reads_ /= 1000;
       benchmark_read(RANDOM, 1);
       reads_ = n;
+    } else if (!strcmp(name, "delete")) {
+      benchmark_delete(write_sync, RANDOM, 1);
+	    wal_checkpoint(db_);
+    } else if (!strcmp(name, "deletesync")) {
+	  write_sync = true;
+      benchmark_delete(write_sync, RANDOM, 1);
+	    wal_checkpoint(db_);
     } else {
       known = false;
       if (strcmp(name, "")) {
@@ -533,3 +544,80 @@ void benchmark_read(int order, int entries_per_batch) {
   error_check(status);
 }
 
+void benchmark_delete(bool write_sync, int order, int entries_per_batch) {
+  int status;
+  sqlite3_stmt *delete_stmt, *begin_trans_stmt, *end_trans_stmt;
+
+  char *delete_str = "DELETE FROM test WHERE key = ?";
+  char *begin_trans_str = "BEGIN TRANSACTION";
+  char *end_trans_str = "END TRANSACTION";
+  
+  /* Check for synchronous flag in options */
+  char* sync_stmt = (write_sync) ? "PRAGMA synchronous = FULL" :
+                                    "PRAGMA synchronous = OFF";
+  status = sqlite3_exec(db_, sync_stmt, NULL, NULL, &err_msg);
+  exec_error_check(status, err_msg);
+
+  /* Preparing sqlite3 statements */
+  status = sqlite3_prepare_v2(db_, begin_trans_str, -1,
+                              &begin_trans_stmt, NULL);
+  error_check(status);
+  status = sqlite3_prepare_v2(db_, end_trans_str, -1,
+                              &end_trans_stmt, NULL);
+  error_check(status);
+  status = sqlite3_prepare_v2(db_, delete_str, -1,
+                              &delete_stmt, NULL);
+  error_check(status);
+
+  /* Generate keys */
+  int keys[num_entries];
+  gen_key(keys, num_entries, order);
+
+  double start = now_micros();
+
+  /* Begin read transaction */
+  if (FLAGS_transaction) {
+    status = sqlite3_step(begin_trans_stmt);
+    step_error_check(status);
+    status = sqlite3_reset(begin_trans_stmt);
+    error_check(status);
+  }
+  for (int i = 0; i < num_entries; i += entries_per_batch) {
+    /* Create and execute SQL statements */
+    for (int j = 0; j < entries_per_batch; j++) {
+      /* Bind key value into delete_stmt */
+      status = sqlite3_bind_int(delete_stmt, 1, keys[i + j]);
+      error_check(status);
+
+      /* Execute read statement */
+      while ((status = sqlite3_step(delete_stmt)) == SQLITE_ROW) {}
+      step_error_check(status);
+
+      /* Reset SQLite statement for another use */
+      status = sqlite3_clear_bindings(delete_stmt);
+      error_check(status);
+      status = sqlite3_reset(delete_stmt);
+      error_check(status);
+
+      finish_single_op();
+    }
+  }
+
+  /* End delete transaction */
+  if (FLAGS_transaction) {
+    status = sqlite3_step(end_trans_stmt);
+    step_error_check(status);
+    status = sqlite3_reset(end_trans_stmt);
+    error_check(status);
+  }
+
+  double end = now_micros();
+  op_total_time_ = end - start;
+
+  status = sqlite3_finalize(delete_stmt);
+  error_check(status);
+  status = sqlite3_finalize(begin_trans_stmt);
+  error_check(status);
+  status = sqlite3_finalize(end_trans_stmt);
+  error_check(status);
+}
