@@ -547,6 +547,8 @@ void benchmark_read(int order, int entries_per_batch) {
 void benchmark_delete(bool write_sync, int order, int entries_per_batch) {
   int status;
   sqlite3_stmt *delete_stmt, *begin_trans_stmt, *end_trans_stmt;
+  
+  char* err_msg = NULL;
 
   char *delete_str = "DELETE FROM test WHERE key = ?";
   char *begin_trans_str = "BEGIN TRANSACTION";
@@ -570,8 +572,8 @@ void benchmark_delete(bool write_sync, int order, int entries_per_batch) {
   error_check(status);
 
   /* Generate keys */
-  int keys[num_entries];
-  gen_key(keys, num_entries, order);
+  int keys[num_];
+  gen_key(keys, num_, order);
 
   double start = now_micros();
 
@@ -582,7 +584,7 @@ void benchmark_delete(bool write_sync, int order, int entries_per_batch) {
     status = sqlite3_reset(begin_trans_stmt);
     error_check(status);
   }
-  for (int i = 0; i < num_entries; i += entries_per_batch) {
+  for (int i = 0; i < num_; i += entries_per_batch) {
     /* Create and execute SQL statements */
     for (int j = 0; j < entries_per_batch; j++) {
       /* Bind key value into delete_stmt */

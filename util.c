@@ -44,6 +44,8 @@ char* trim_space(const char* s) {
 }
 
 bool if_create_database(char* name) {
-  return strcmp(name, "overwrite") && strcmp(name, "readseq")
-    && strcmp(name, "readrandom") && strcmp(name, "readrand100K");
+  return strcmp(name, "overwrite") && strcmp(name, "overwritesync") 
+    && strcmp(name, "readseq") && strcmp(name, "readrandom") 
+    && strcmp(name, "readrand100K") && strcmp(name, "delete")
+    && strcmp(name, "deletesync");
 }

@@ -95,6 +95,7 @@ void benchmark_run(void);
 void benchmark_open(void);
 void benchmark_write(bool, int, int, int, int);
 void benchmark_read(int, int);
+void benchmark_delete(bool, int, int);
 void benchmark_read_sequential(void);
 
 /* random.c */
