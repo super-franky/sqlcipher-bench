@@ -2,7 +2,7 @@ CFLAGS=-Wall -I. -O2 -DNDEBUG -std=c99
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 HDRS=$(wildcard *.h)
-TARGET=sqlite-bench
+TARGET=sqlcipher-bench
 
 UNAME_S := $(shell uname -s)
 LDFLAGS=-lsqlcipher -lpthread -ldl -lm 

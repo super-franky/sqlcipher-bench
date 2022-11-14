@@ -1,4 +1,4 @@
-# SQLite3 Benchmark
+#  SQLcipher-Benchmark
 
 A SQLcipher benchmark tool.
 
@@ -23,8 +23,8 @@ $ make
 ## Usage
 
 ```
-$ ./sqlite-bench --help
-Usage: ./sqlite-bench [OPTION]...
+$ ./sqlcipher-bench --help
+Usage: ./sqlcipher-bench [OPTION]...
 SQLite3 benchmark tool
 [OPTION]
   --benchmarks=[BENCH]          specify benchmark

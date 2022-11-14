@@ -20,6 +20,8 @@
 //   readseq       -- read N times sequentially
 //   readrandom    -- read N times in random order
 //   readrand100K  -- read N/1000 100K values in random order in async mode
+//   delete        -- delete N row in sequential key order in async mode
+//   deletesync    -- delete N row in sequential key order in sync mode
 char* FLAGS_benchmarks;
 
 // Number of key/values to place in database
@@ -79,6 +81,8 @@ void init() {
   //   readseq       -- read N times sequentially
   //   readrandom    -- read N times in random order
   //   readrand100K  -- read N/1000 100K values in random order in async mode
+  //   delete        -- delete N row in sequential key order in async mode
+  //   deletesync    -- delete N row in sequential key order in sync mode
   FLAGS_benchmarks =
     "fillseq,"
     "fillseqsync,"

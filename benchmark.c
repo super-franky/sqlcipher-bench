@@ -299,9 +299,9 @@ void benchmark_run() {
       benchmark_delete(write_sync, RANDOM, 1);
 	    wal_checkpoint(db_);
     } else if (!strcmp(name, "deletesync")) {
-	  write_sync = true;
+      write_sync = true;
       benchmark_delete(write_sync, RANDOM, 1);
-	    wal_checkpoint(db_);
+      wal_checkpoint(db_);
     } else {
       known = false;
       if (strcmp(name, "")) {
@@ -577,7 +577,7 @@ void benchmark_delete(bool write_sync, int order, int entries_per_batch) {
 
   double start = now_micros();
 
-  /* Begin read transaction */
+  /* Begin delete transaction */
   if (FLAGS_transaction) {
     status = sqlite3_step(begin_trans_stmt);
     step_error_check(status);
