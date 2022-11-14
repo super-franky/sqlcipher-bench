@@ -115,7 +115,7 @@ void init() {
 
 void print_usage(const char* argv0) {
   fprintf(stderr, "Usage: %s [OPTION]...\n", argv0);
-  fprintf(stderr, "SQLite3 benchmark tool\n");
+  fprintf(stderr, "SQLcipher benchmark tool\n");
   fprintf(stderr, "[OPTION]\n");
   fprintf(stderr, "  --benchmarks=[BENCH]\t\tspecify benchmark\n");
   fprintf(stderr, "  --compression_ratio=DOUBLE\tcompression ratio\n");
