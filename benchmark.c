@@ -412,57 +412,60 @@ void benchmark_write(bool write_sync, int order, int num_entries, int value_size
                               &end_trans_stmt, NULL);
   error_check(status);
 
-  /* Generate keys and values */
-  int keys[num_entries];
-  gen_key(keys, num_entries, order);
-  char* values[num_entries];
-  gen_value(values, num_entries, value_size);
+  /*test MAXNUMPERTIME = 500000 at most*/
+  for (int n = num_entries > MAXNUMPERTIME ? MAXNUMPERTIME : num_entries; n > 0; n -= MAXNUMPERTIME) {
+    /* Generate keys and values */
+    int keys[n];
+    gen_key(keys, n, order);
+    char* values[n];
+    gen_value(values, n, value_size);
 
-  double start = now_micros();
+    double start = now_micros();
 
-  /* Begin write transaction */
-  if (FLAGS_transaction) {
-    status = sqlite3_step(begin_trans_stmt);
-    step_error_check(status);
-    status = sqlite3_reset(begin_trans_stmt);
-    error_check(status);
-  }
-
-  for (int i = 0; i < num_entries; i += entries_per_batch) {
-    /* Create and execute SQL statements */
-    for (int j = 0; j < entries_per_batch; j++) {
-      /* Bind KV values into replace_stmt */
-      status = sqlite3_bind_int(replace_stmt, 1, keys[i+j]);
-      error_check(status);
-      status = sqlite3_bind_blob(replace_stmt, 2, values[i+j],
-                                  value_size, SQLITE_STATIC);
-      error_check(status);
-
-      /* Execute replace_stmt */
-      bytes_ += value_size + sizeof(int);
-      status = sqlite3_step(replace_stmt);
+    /* Begin write transaction */
+    if (FLAGS_transaction) {
+      status = sqlite3_step(begin_trans_stmt);
       step_error_check(status);
-
-      /* Reset SQLite statement for another use */
-      status = sqlite3_clear_bindings(replace_stmt);
+      status = sqlite3_reset(begin_trans_stmt);
       error_check(status);
-      status = sqlite3_reset(replace_stmt);
-      error_check(status);
-
-      finish_single_op();
     }
-  }
 
-  /* End write transaction */
-  if (FLAGS_transaction) {
-    status = sqlite3_step(end_trans_stmt);
-    step_error_check(status);
-    status = sqlite3_reset(end_trans_stmt);
-    error_check(status);
-  }
+    for (int i = 0; i < n; i += entries_per_batch) {
+      /* Create and execute SQL statements */
+      for (int j = 0; j < entries_per_batch; j++) {
+        /* Bind KV values into replace_stmt */
+        status = sqlite3_bind_int(replace_stmt, 1, keys[i+j]);
+        error_check(status);
+        status = sqlite3_bind_blob(replace_stmt, 2, values[i+j],
+                                   value_size, SQLITE_STATIC);
+        error_check(status);
 
-  double end = now_micros();
-  op_total_time_ = end - start;
+        /* Execute replace_stmt */
+        bytes_ += value_size + sizeof(int);
+        status = sqlite3_step(replace_stmt);
+        step_error_check(status);
+
+        /* Reset SQLite statement for another use */
+        status = sqlite3_clear_bindings(replace_stmt);
+        error_check(status);
+        status = sqlite3_reset(replace_stmt);
+        error_check(status);
+
+        finish_single_op();
+      }
+    }
+
+    /* End write transaction */
+    if (FLAGS_transaction) {
+      status = sqlite3_step(end_trans_stmt);
+      step_error_check(status);
+      status = sqlite3_reset(end_trans_stmt);
+      error_check(status);
+    }
+
+    double end = now_micros();
+    op_total_time_ += end - start;
+  }
 
   status = sqlite3_finalize(replace_stmt);
   error_check(status);
@@ -491,50 +494,53 @@ void benchmark_read(int order, int entries_per_batch) {
                               &read_stmt, NULL);
   error_check(status);
 
-  /* Generate keys */
-  int keys[reads_];
-  gen_key(keys, reads_, order);
+  /*test MAXNUMPERTIME = 500000 at most*/
+  for (int n = reads_ > MAXNUMPERTIME ? MAXNUMPERTIME : reads_; n > 0; n -= MAXNUMPERTIME) {
+    /* Generate keys */
+    int keys[n];
+    gen_key(keys, n, order);
 
-  double start = now_micros();
+    double start = now_micros();
 
-  /* Begin read transaction */
-  if (FLAGS_transaction) {
-    status = sqlite3_step(begin_trans_stmt);
-    step_error_check(status);
-    status = sqlite3_reset(begin_trans_stmt);
-    error_check(status);
-  }
-  for (int i = 0; i < reads_; i += entries_per_batch) {
-    /* Create and execute SQL statements */
-    for (int j = 0; j < entries_per_batch; j++) {
-      /* Bind key value into read_stmt */
-      status = sqlite3_bind_int(read_stmt, 1, keys[i + j]);
-      error_check(status);
-
-      /* Execute read statement */
-      while ((status = sqlite3_step(read_stmt)) == SQLITE_ROW) {}
+    /* Begin read transaction */
+    if (FLAGS_transaction) {
+      status = sqlite3_step(begin_trans_stmt);
       step_error_check(status);
-
-      /* Reset SQLite statement for another use */
-      status = sqlite3_clear_bindings(read_stmt);
+      status = sqlite3_reset(begin_trans_stmt);
       error_check(status);
-      status = sqlite3_reset(read_stmt);
-      error_check(status);
-
-      finish_single_op();
     }
-  }
+    for (int i = 0; i < n; i += entries_per_batch) {
+      /* Create and execute SQL statements */
+      for (int j = 0; j < entries_per_batch; j++) {
+        /* Bind key value into read_stmt */
+        status = sqlite3_bind_int(read_stmt, 1, keys[i + j]);
+        error_check(status);
 
-  /* End read transaction */
-  if (FLAGS_transaction) {
-    status = sqlite3_step(end_trans_stmt);
-    step_error_check(status);
-    status = sqlite3_reset(end_trans_stmt);
-    error_check(status);
-  }
+        /* Execute read statement */
+        while ((status = sqlite3_step(read_stmt)) == SQLITE_ROW) {}
+        step_error_check(status);
 
-  double end = now_micros();
-  op_total_time_ = end - start;
+        /* Reset SQLite statement for another use */
+        status = sqlite3_clear_bindings(read_stmt);
+        error_check(status);
+        status = sqlite3_reset(read_stmt);
+        error_check(status);
+
+        finish_single_op();
+      }
+    }
+
+    /* End read transaction */
+    if (FLAGS_transaction) {
+      status = sqlite3_step(end_trans_stmt);
+      step_error_check(status);
+      status = sqlite3_reset(end_trans_stmt);
+      error_check(status);
+    }
+
+    double end = now_micros();
+    op_total_time_ += end - start;
+  }
 
   status = sqlite3_finalize(read_stmt);
   error_check(status);
@@ -571,50 +577,53 @@ void benchmark_delete(bool write_sync, int order, int entries_per_batch) {
                               &delete_stmt, NULL);
   error_check(status);
 
-  /* Generate keys */
-  int keys[num_];
-  gen_key(keys, num_, order);
+/*test MAXNUMPERTIME = 500000 at most*/
+  for (int n = num_ > MAXNUMPERTIME ? MAXNUMPERTIME : num_; n > 0; n -= MAXNUMPERTIME) {
+    /* Generate keys */
+    int keys[n];
+    gen_key(keys, n, order);
 
-  double start = now_micros();
+    double start = now_micros();
 
-  /* Begin delete transaction */
-  if (FLAGS_transaction) {
-    status = sqlite3_step(begin_trans_stmt);
-    step_error_check(status);
-    status = sqlite3_reset(begin_trans_stmt);
-    error_check(status);
-  }
-  for (int i = 0; i < num_; i += entries_per_batch) {
-    /* Create and execute SQL statements */
-    for (int j = 0; j < entries_per_batch; j++) {
-      /* Bind key value into delete_stmt */
-      status = sqlite3_bind_int(delete_stmt, 1, keys[i + j]);
-      error_check(status);
-
-      /* Execute read statement */
-      while ((status = sqlite3_step(delete_stmt)) == SQLITE_ROW) {}
+    /* Begin delete transaction */
+    if (FLAGS_transaction) {
+      status = sqlite3_step(begin_trans_stmt);
       step_error_check(status);
-
-      /* Reset SQLite statement for another use */
-      status = sqlite3_clear_bindings(delete_stmt);
+      status = sqlite3_reset(begin_trans_stmt);
       error_check(status);
-      status = sqlite3_reset(delete_stmt);
-      error_check(status);
-
-      finish_single_op();
     }
-  }
+    for (int i = 0; i < n; i += entries_per_batch) {
+      /* Create and execute SQL statements */
+      for (int j = 0; j < entries_per_batch; j++) {
+        /* Bind key value into delete_stmt */
+        status = sqlite3_bind_int(delete_stmt, 1, keys[i + j]);
+        error_check(status);
 
-  /* End delete transaction */
-  if (FLAGS_transaction) {
-    status = sqlite3_step(end_trans_stmt);
-    step_error_check(status);
-    status = sqlite3_reset(end_trans_stmt);
-    error_check(status);
-  }
+        /* Execute read statement */
+        while ((status = sqlite3_step(delete_stmt)) == SQLITE_ROW) {}
+        step_error_check(status);
 
-  double end = now_micros();
-  op_total_time_ = end - start;
+        /* Reset SQLite statement for another use */
+        status = sqlite3_clear_bindings(delete_stmt);
+        error_check(status);
+        status = sqlite3_reset(delete_stmt);
+        error_check(status);
+
+        finish_single_op();
+      }
+    }
+
+    /* End delete transaction */
+    if (FLAGS_transaction) {
+      status = sqlite3_step(end_trans_stmt);
+      step_error_check(status);
+      status = sqlite3_reset(end_trans_stmt);
+      error_check(status);
+    }
+
+    double end = now_micros();
+    op_total_time_ += end - start;
+  }
 
   status = sqlite3_finalize(delete_stmt);
   error_check(status);

@@ -20,6 +20,7 @@
 
 #define kNumBuckets 154
 #define kNumData 1000000
+#define MAXNUMPERTIME 500000
 
 typedef struct Random {
   uint32_t seed_;
